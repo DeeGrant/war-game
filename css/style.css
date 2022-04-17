@@ -3,33 +3,23 @@
 /*******************************************/
 
 /* Box Model Hack */
-*{
+* {
   box-sizing: border-box;
 }
 
 /******************************************
 /* LAYOUT
 /*******************************************/
-object {
-  position: relative;
+header, footer, section {
+  text-align: center;
 }
-img  {
-  display: block;
-  /*margin: 0 auto;*/
-  margin-bottom: 30px;
-  /*position: relative;*/
+main {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
 }
-img + img {
-  position: absolute;
-  top: 5px;
-  left: 5px;
-  /*z-index: 1;*/
-}
-img + img + img {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  /*z-index: 1;*/
+section {
+  padding-bottom: 2rem;
 }
 
 /******************************************
