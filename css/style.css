@@ -10,11 +10,27 @@
 /******************************************
 /* LAYOUT
 /*******************************************/
-img{
-  display: block;
-  margin: 0 auto;
+object {
+  position: relative;
 }
-
+img  {
+  display: block;
+  /*margin: 0 auto;*/
+  margin-bottom: 30px;
+  /*position: relative;*/
+}
+img + img {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  /*z-index: 1;*/
+}
+img + img + img {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  /*z-index: 1;*/
+}
 
 /******************************************
 /* ADDITIONAL STYLES

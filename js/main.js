@@ -18,6 +18,7 @@ class Game {
             let hand2 = cards.filter((element, index) => index % 2 === 1)
             console.log(hand1)
             console.log(hand2)
+
         } catch (e) {
             console.log(e)
         }
@@ -53,20 +54,6 @@ async function getDeckId() {
     }
 }
 
-function dealCards() {
-
-        fetch(`https://deckofcardsapi.com/api/deck/${DECK_ID}/draw/?count=2`)
-            .then(res => res.json()) // parse response as JSON
-            .then(data => {
-                console.log(data)
-                addCardToHand(data.cards[0].code, hand1)
-                addCardToHand(data.cards[1].code, hand2)
-            })
-            .catch(err => {
-                console.log(`error ${err}`)
-            });
-    console.log('dealing done')
-}
 
 function drawCards() {
     drawCardFromHand(hand1)
