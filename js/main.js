@@ -13,8 +13,6 @@ class Game {
             console.log(cards)
             let hand1 = cards.filter((element, index) => index % 2 === 0)
             let hand2 = cards.filter((element, index) => index % 2 === 1)
-            // console.log(hand1.join(','))
-            // console.log(hand2.join(','))
             await this.AddToHand(this.hand1, hand1)
             await this.AddToHand(this.hand2, hand2)
         } catch (e) {
@@ -25,14 +23,21 @@ class Game {
 
     }
     async drawCards(){
-        let response = await fetch(`https://deckofcardsapi.com/api/deck/${this.deckId}/pile/${this.hand1}/draw/bottom/?count=1`)
-        let data = await response.json()
-        this.updateCard(this.hand1, data.cards[0].image)
-
-        response = await fetch(`https://deckofcardsapi.com/api/deck/${this.deckId}/pile/${this.hand2}/draw/bottom/?count=1`)
-        data = await response.json()
-        this.updateCard(this.hand2, data.cards[0].image)
-
+        // TODO api doesn't fully handle parallel requests?
+        try {
+            let data1 = this.drawCard(this.hand1)
+            let data2 = this.drawCard(this.hand2)
+            let data = await Promise.all([data1, data2])
+            this.updateCard(this.hand1, data[0].cards[0].image)
+            this.updateCard(this.hand2, data[1].cards[0].image)
+        } catch (e) {
+            console.log(e)
+            console.log(e.response)
+        }
+    }
+    async drawCard(hand) {
+        let response = await fetch(`https://deckofcardsapi.com/api/deck/${this.deckId}/pile/${hand}/draw/bottom/?count=1`)
+        return await response.json()
     }
     async AddToHand(hand, cards) {
         let response = await fetch(`https://deckofcardsapi.com/api/deck/${this.deckId}/pile/${hand}/add/?cards=${cards.join(',')}`)
@@ -51,7 +56,6 @@ class Game {
         console.log(img)
         img.src = card_url
     }
-
 }
 
 async function startGame() {
