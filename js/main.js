@@ -24,6 +24,7 @@ class Game {
     }
     async drawCards(){
         // TODO api doesn't fully handle parallel requests?
+        // parallel requests
         try {
             let data1 = this.drawCard(this.hand1)
             let data2 = this.drawCard(this.hand2)
@@ -32,8 +33,17 @@ class Game {
             this.updateCard(this.hand2, data[1].cards[0].image)
         } catch (e) {
             console.log(e)
-            console.log(e.response)
         }
+
+        //     // serial requests
+        // try {
+        //     let data1 = await this.drawCard(this.hand1)
+        //     let data2 = await this.drawCard(this.hand2)
+        //     this.updateCard(this.hand1, data1.cards[0].image)
+        //     this.updateCard(this.hand2, data2.cards[0].image)
+        // } catch (e) {
+        //     console.log(e)
+        // }
     }
     async drawCard(hand) {
         let response = await fetch(`https://deckofcardsapi.com/api/deck/${this.deckId}/pile/${hand}/draw/bottom/?count=1`)
