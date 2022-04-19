@@ -2,3 +2,7 @@
 Play a game of war
 
 [Play Here](https://razboi.netlify.app)
+
+#### Tests
+- spam button
+- 

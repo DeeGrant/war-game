@@ -10,6 +10,12 @@
 /******************************************
 /* LAYOUT
 /*******************************************/
+html {
+  background: #57c057;
+}
+a {
+  color: black;
+}
 header, footer, section {
   text-align: center;
 }
