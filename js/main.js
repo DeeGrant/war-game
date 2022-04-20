@@ -1,6 +1,8 @@
 init()
 
 function init() {
+    document.getElementById('winner').hidden = true
+    document.getElementById('war').hidden = true
     startGame()
         .then(result => console.log(`started game using deck: ${result}`))
 }
@@ -33,6 +35,7 @@ class Game {
         this.round = 0;
         this._score1 = 0;
         this._score2 = 0;
+        this._isWinner = false;
     }
 
     get score1() {
@@ -41,6 +44,9 @@ class Game {
     set score1(score) {
         this._score1 = score
         document.querySelector(`#hand1 span`).innerHTML = this._score1
+        if (score === 52) {
+            this._isWinner = true;
+        }
     }
 
     get score2() {
@@ -49,6 +55,9 @@ class Game {
     set score2(score) {
         this._score2 = score
         document.querySelector(`#hand2 span`).innerHTML = this._score2
+        if (score === 52) {
+            this._isWinner = true;
+        }
     }
 
     async dealTheDeck() {
@@ -59,8 +68,16 @@ class Game {
             let cards = data.cards.map(card => card.code)
             console.log(cards)
 
-            let hand1 = cards.filter((element, index) => index % 2 === 0)
-            let hand2 = cards.filter((element, index) => index % 2 === 1)
+            // FIXME uncomment
+            // let hand1 = cards.filter((element, index) => index % 2 === 0)
+            // let hand2 = cards.filter((element, index) => index % 2 === 1)
+
+            // FIXME for testing - stack the deck
+            let hand1 = [cards.pop()]
+            // hand1.push(cards.pop(), cards.pop(), cards.pop())
+            let hand2 = cards
+            // FIXME for testing
+
             let data1 = await this.AddToHand(this.hand1, hand1)
             let data2 = await this.AddToHand(this.hand2, hand2)
 
@@ -120,14 +137,28 @@ class Game {
 
             let res = await this.addPileToHand(winner)
             this.updateUI(res, compareCard1.image, compareCard2.image)
+
+            if (this._isWinner) {
+                this.isWinner()
+            }
         } catch (e) {
             console.log(e)
         }
     }
 
     async drawCard(hand, count= 1) {
-        let response = await fetch(`https://deckofcardsapi.com/api/deck/${this.deckId}/pile/${hand}/draw/bottom/?count=${count}`)
-        return await response.json()
+        // alt compare to current score
+        try {
+            let response = await fetch(`https://deckofcardsapi.com/api/deck/${this.deckId}/pile/${hand}/draw/bottom/?count=${count}`)
+            if (response.ok) {
+                return await response.json()
+            } else if (response.status === 404) {
+                return await this.drawCard(hand, --count)
+            }
+            console.log(response)
+        } catch (e) {
+            console.log(e)
+        }
     }
 
     async AddToHand(hand, cards) {
@@ -206,5 +237,13 @@ class Game {
 
     updateRound() {
         document.querySelector('h4 span').innerHTML = this.round
+    }
+
+    isWinner() {
+        document.querySelector('button').disabled = true
+        // TODO display that there is a winner
+        let heading = document.getElementById('winner')
+        heading.hidden = false
+        heading.innerHTML = `${this._score1 === 52 ? 'Player 1' : 'Player 2'} Wins!`
     }
 }
