@@ -1,3 +1,28 @@
+init()
+
+function init() {
+    startGame()
+        .then(result => console.log(`started game using deck: ${result}`))
+}
+
+async function startGame() {
+    let deckId = await getDeckId()
+    let game = new Game(deckId, 'hand1', 'hand2')
+    let res = await game.dealTheDeck()
+    document.querySelector('#draw').addEventListener('click', () => {game.drawCards()})
+    return deckId
+}
+
+async function getDeckId() {
+    try {
+        let response = await fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1')
+        let data = await response.json()
+        return data.deck_id
+    } catch (e) {
+        console.log(e)
+    }
+}
+
 class Game {
     constructor(deckId, hand1, hand2) {
         this.deckId = deckId;
@@ -10,8 +35,6 @@ class Game {
         this._score2 = 0;
     }
 
-    // These are really slow. why? The API just slower now? There is an API call between the card update and the score update
-    // :/ still very slow try tomorrow
     get score1() {
         return this._score1
     }
@@ -32,12 +55,16 @@ class Game {
         try {
             let response = await fetch(`https://deckofcardsapi.com/api/deck/${this.deckId}/draw/?count=52`)
             let data = await response.json()
+
             let cards = data.cards.map(card => card.code)
             console.log(cards)
+
             let hand1 = cards.filter((element, index) => index % 2 === 0)
             let hand2 = cards.filter((element, index) => index % 2 === 1)
-            let res1 = await this.AddToHand(this.hand1, hand1)
-            let res2 = await this.AddToHand(this.hand2, hand2)
+            let data1 = await this.AddToHand(this.hand1, hand1)
+            let data2 = await this.AddToHand(this.hand2, hand2)
+
+            this.updateUI(data2, "img/back-final.png", "img/back-final.png")
         } catch (e) {
             console.log(e)
         }
@@ -87,16 +114,12 @@ class Game {
             let winner = this.compareCards(compareCard1.value, compareCard2.value)
 
             if (this.isWar) {
-                // update UI
-                this.warUI(compareCard1.image, compareCard2.image)
+                this.updateUI(data2, compareCard1.image, compareCard2.image)
                 return
             }
 
             let res = await this.addPileToHand(winner)
-
-            // update UI
             this.updateUI(res, compareCard1.image, compareCard2.image)
-
         } catch (e) {
             console.log(e)
         }
@@ -110,9 +133,8 @@ class Game {
     async AddToHand(hand, cards) {
         let response = await fetch(`https://deckofcardsapi.com/api/deck/${this.deckId}/pile/${hand}/add/?cards=${cards.join(',')}`)
         let data = await response.json()
-        console.log(data)
-        console.log(hand, data.piles[hand].remaining)
         this.updateScore(hand, data.piles[hand].remaining)
+        return data
     }
 
     updateScore(hand, score) {
@@ -126,11 +148,14 @@ class Game {
     }
 
     compareCards(value1, value2) {
+        // // FIXME just for testing
+        // this.isWar = true
+        // return 'war'
+        // // FIXME just for testing
+
         value1 = this.convertCardValue(value1)
         value2 = this.convertCardValue(value2)
-        console.log('values: ', typeof value1, value1, typeof value2, value2)
 
-        // check for war
         if (value1 === value2) {
             this.isWar = true
             return 'war'
@@ -168,51 +193,18 @@ class Game {
         return data.piles[hand]
     }
 
-    warUI(card1_url, card2_url) {
-        this.updateCard(this.hand1, card1_url)
-        this.updateCard(this.hand2, card2_url)
-
-        this.score1 -= 4
-        // this._score1 -= 4
-        // document.querySelector(`#hand1 span`).innerHTML = this._score1
-        this.score2 -= 4
-        // this._score2 -= 4
-        // document.querySelector(`#hand2 span`).innerHTML = this._score2
-    }
-
     updateUI(res, card1_url, card2_url) {
+        document.getElementById('war').hidden = !this.isWar
+        this.updateRound()
+
         this.updateCard(this.hand1, card1_url)
         this.updateCard(this.hand2, card2_url)
 
         this.score1 = res.piles[this.hand1].remaining
-        // this._score1 = res.piles[this.hand1].remaining
-        // document.querySelector(`#hand1 span`).innerHTML = this._score1
         this.score2 = res.piles[this.hand2].remaining
-        // this._score2 = res.piles[this.hand2].remaining
-        // document.querySelector(`#hand2 span`).innerHTML = this._score2
+    }
+
+    updateRound() {
+        document.querySelector('h4 span').innerHTML = this.round
     }
 }
-
-async function startGame() {
-    let deckId = await getDeckId()
-    let game = new Game(deckId, 'hand1', 'hand2')
-    let res = await game.dealTheDeck()
-    document.querySelector('#draw').addEventListener('click', () => {game.drawCards()})
-    return deckId
-}
-
-async function getDeckId() {
-    try {
-        let response = await fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1')
-        let data = await response.json()
-        return data.deck_id
-    } catch (e) {
-        console.log(e)
-    }
-}
-
-function init() {
-    startGame()
-        .then(result => console.log(`started game using deck: ${result}`))
-}
-init()
