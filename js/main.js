@@ -5,6 +5,27 @@ class Game {
         this.hand2 = hand2;
         this.pile = [];
         this.isWar = false;
+        this.round = 0;
+        this._score1 = 0;
+        this._score2 = 0;
+    }
+
+    // These are really slow. why? The API just slower now? There is an API call between the card update and the score update
+    // :/ still very slow try tomorrow
+    get score1() {
+        return this._score1
+    }
+    set score1(score) {
+        this._score1 = score
+        document.querySelector(`#hand1 span`).innerHTML = this._score1
+    }
+
+    get score2() {
+        return this._score2
+    }
+    set score2(score) {
+        this._score2 = score
+        document.querySelector(`#hand2 span`).innerHTML = this._score2
     }
 
     async dealTheDeck() {
@@ -48,6 +69,8 @@ class Game {
     async drawCards(){ // is war parameter?
         // serial requests
         try {
+            this.round++
+
             let drawNumber = 1
             if (this.isWar) {
                 drawNumber = 4
@@ -58,29 +81,28 @@ class Game {
 
             let compareCard1 = data1.cards[data1.cards.length-1]
             let compareCard2 = data2.cards[data2.cards.length-1]
-            console.log('Compare Cards: ', compareCard1, compareCard2)
-
-            this.updateCard(this.hand1, compareCard1.image)
-            this.updateCard(this.hand2, compareCard2.image)
 
             this.addCardsToPile([...data1.cards.map(card => card.code), ...data2.cards.map(card => card.code)])
 
             let winner = this.compareCards(compareCard1.value, compareCard2.value)
-            console.log('winner! ', winner)
+
             if (this.isWar) {
+                // update UI
+                this.warUI(compareCard1.image, compareCard2.image)
                 return
             }
 
             let res = await this.addPileToHand(winner)
-            this.updateScore(this.hand1, res.piles[this.hand1].remaining)
-            this.updateScore(this.hand2, res.piles[this.hand2].remaining)
+
+            // update UI
+            this.updateUI(res, compareCard1.image, compareCard2.image)
 
         } catch (e) {
             console.log(e)
         }
     }
 
-    async drawCard(hand, count=1) {
+    async drawCard(hand, count= 1) {
         let response = await fetch(`https://deckofcardsapi.com/api/deck/${this.deckId}/pile/${hand}/draw/bottom/?count=${count}`)
         return await response.json()
     }
@@ -96,7 +118,7 @@ class Game {
     updateScore(hand, score) {
         const span = document.querySelector(`#${hand} span`)
         span.innerText = score
-        this[`${hand}_scare`] = score
+        this[`${hand}_score`] = score
     }
 
     updateCard(hand, card_url){
@@ -144,6 +166,30 @@ class Game {
         let response = await fetch(`https://deckofcardsapi.com/api/deck/${this.deckId}/pile/${hand}/list/`)
         let data = await response.json()
         return data.piles[hand]
+    }
+
+    warUI(card1_url, card2_url) {
+        this.updateCard(this.hand1, card1_url)
+        this.updateCard(this.hand2, card2_url)
+
+        this.score1 -= 4
+        // this._score1 -= 4
+        // document.querySelector(`#hand1 span`).innerHTML = this._score1
+        this.score2 -= 4
+        // this._score2 -= 4
+        // document.querySelector(`#hand2 span`).innerHTML = this._score2
+    }
+
+    updateUI(res, card1_url, card2_url) {
+        this.updateCard(this.hand1, card1_url)
+        this.updateCard(this.hand2, card2_url)
+
+        this.score1 = res.piles[this.hand1].remaining
+        // this._score1 = res.piles[this.hand1].remaining
+        // document.querySelector(`#hand1 span`).innerHTML = this._score1
+        this.score2 = res.piles[this.hand2].remaining
+        // this._score2 = res.piles[this.hand2].remaining
+        // document.querySelector(`#hand2 span`).innerHTML = this._score2
     }
 }
 

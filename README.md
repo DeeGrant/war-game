@@ -5,7 +5,8 @@ Play a game of war
 
 #### Tests
 - spam button
-- draw counter
+- round counter
 - handle over-drawing deck
   - during war
   - loss / last card
+- win on war?

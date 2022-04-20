@@ -16,13 +16,16 @@ html {
 a {
   color: black;
 }
+img {
+  width: 75%;
+}
 header, footer, section {
   text-align: center;
 }
 main {
   display: flex;
   justify-content: center;
-  gap: 3rem;
+  gap: 2rem;
 }
 section {
   padding-bottom: 2rem;
