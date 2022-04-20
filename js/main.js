@@ -241,7 +241,6 @@ class Game {
 
     isWinner() {
         document.querySelector('button').disabled = true
-        // TODO display that there is a winner
         let heading = document.getElementById('winner')
         heading.hidden = false
         heading.innerHTML = `${this._score1 === 52 ? 'Player 1' : 'Player 2'} Wins!`

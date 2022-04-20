@@ -5,4 +5,12 @@ Play a game of war
 
 #### Tests
 - spam button
-- win on war?
+
+#### TODO
+- remove tests
+- shuffle pile into hand
+- note winning card in UI
+  - highlight
+  - shadow
+  - text
+  - border

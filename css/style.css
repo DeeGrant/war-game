@@ -7,30 +7,52 @@
   box-sizing: border-box;
 }
 
-/******************************************
-/* LAYOUT
-/*******************************************/
 html {
-  background: #57c057;
+  color: #132f3b;
+  background: #f5f9fb;
+  font-family: 'Padauk', sans-serif;
+  font-size: calc(18px + 1vw);
 }
 a {
   color: black;
 }
-img {
-  width: 75%;
+small {
+  font-size: .5rem;
 }
+/******************************************
+/* LAYOUT
+/*******************************************/
 header, footer, section {
   text-align: center;
+}
+h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 2rem 0 1rem 0;
+}
+button {
+  margin: .5rem;
 }
 main {
   display: flex;
   justify-content: center;
-  gap: 2rem;
 }
-section {
-  padding-bottom: 2rem;
+img {
+  margin-top: .3rem;
+  width: 8rem;
+}
+body > section {
+  margin: .2rem;
 }
 
+@media screen and (min-width: 450px){
+  main {
+    gap: 1.5rem;
+  }
+}
 /******************************************
 /* ADDITIONAL STYLES
 /*******************************************/
+#winner, #war {
+  margin: .5rem;
+}
