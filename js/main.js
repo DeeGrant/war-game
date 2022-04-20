@@ -66,17 +66,9 @@ class Game {
             let data = await response.json()
 
             let cards = data.cards.map(card => card.code)
-            console.log(cards)
 
-            // FIXME uncomment
-            // let hand1 = cards.filter((element, index) => index % 2 === 0)
-            // let hand2 = cards.filter((element, index) => index % 2 === 1)
-
-            // FIXME for testing - stack the deck
-            let hand1 = [cards.pop()]
-            // hand1.push(cards.pop(), cards.pop(), cards.pop())
-            let hand2 = cards
-            // FIXME for testing
+            let hand1 = cards.filter((element, index) => index % 2 === 0)
+            let hand2 = cards.filter((element, index) => index % 2 === 1)
 
             let data1 = await this.AddToHand(this.hand1, hand1)
             let data2 = await this.AddToHand(this.hand2, hand2)
@@ -90,7 +82,6 @@ class Game {
     addCardsToPile(cards) {
         // TODO shuffle? here?
         this.pile.push(...cards)
-        console.log('pile', this.pile)
     }
 
     async addPileToHand(hand) {
@@ -98,12 +89,11 @@ class Game {
             let res = await fetch(`https://deckofcardsapi.com/api/deck/${this.deckId}/pile/${hand}/add/?cards=${this.pile.join(',')}`)
             let data = await res.json()
 
-            if (data.success) {
-                this.pile = []
-                await this.viewHands()
-            } else {
-                // failure modes
+            if (!data.success) {
+                // ??
             }
+            this.pile = []
+            // await this.viewHands()
             return data
         } catch (e) {
             console.log(e)
@@ -155,7 +145,6 @@ class Game {
             } else if (response.status === 404) {
                 return await this.drawCard(hand, --count)
             }
-            console.log(response)
         } catch (e) {
             console.log(e)
         }
@@ -179,11 +168,6 @@ class Game {
     }
 
     compareCards(value1, value2) {
-        // // FIXME just for testing
-        // this.isWar = true
-        // return 'war'
-        // // FIXME just for testing
-
         value1 = this.convertCardValue(value1)
         value2 = this.convertCardValue(value2)
 
