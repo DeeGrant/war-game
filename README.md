@@ -6,7 +6,7 @@ Play the card game, war / Razboi. First player to 52 cards wins. Implemented usi
 A war happens: \
 ![war](references/war-razboi.gif) \
 Alice Wins! \
-![win](references/war-alice-wins.gif)
+![win](references/finished-game.png)
 
 #### Improvements
 - shuffle pile when returning it to a hand
