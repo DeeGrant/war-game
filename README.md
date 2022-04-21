@@ -1,5 +1,5 @@
 # Razboi
-Play the card game, war / Razboi. First player to 52 cards wins.
+Play the card game, war / Razboi. First player to 52 cards wins. Implemented using the [deckofcardsapi](https://deckofcardsapi.com).
 
 [Play Here](https://razboi.netlify.app)
 
