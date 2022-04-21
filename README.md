@@ -1,10 +1,13 @@
-# war-game
-Play a game of war
+# Razboi
+Play the card game, war / Razboi. First player to 52 cards wins.
 
 [Play Here](https://razboi.netlify.app)
 
-#### Tests
-- spam button
+A war happens: \
+![war](references/war-razboi.gif) \
+Alice Wins! \
+![win](references/war-alice-wins.gif)
 
-#### TODO
-- shuffle pile into hand
+#### Improvements
+- shuffle pile when returning it to a hand
+- test spamming button
