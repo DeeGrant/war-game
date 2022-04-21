@@ -121,11 +121,13 @@ class Game {
             let winner = this.compareCards(compareCard1.value, compareCard2.value)
 
             if (this.isWar) {
+                this.clearHighlight()
                 this.updateUI(data2, compareCard1.image, compareCard2.image)
                 return
             }
 
             let res = await this.addPileToHand(winner)
+            this.highlightWinner(winner)
             this.updateUI(res, compareCard1.image, compareCard2.image)
 
             if (this._isWinner) {
@@ -228,5 +230,21 @@ class Game {
         let heading = document.getElementById('winner')
         heading.hidden = false
         heading.innerHTML = `${this._score1 === 52 ? 'Player 1' : 'Player 2'} Wins!`
+    }
+
+    highlightWinner(winner) {
+        this.clearHighlight()
+
+        let img = document.querySelector(`#${winner} img`)
+        img.style['background'] = 'darkred'
+        img.style['box-shadow'] = '.1rem .1rem 0 darkred'
+    }
+    clearHighlight() {
+        let one = document.querySelector('#hand1 img')
+        one.style['background'] = 'none'
+        one.style['box-shadow'] = 'none'
+        let two = document.querySelector('#hand2 img')
+        two.style['background'] = 'none'
+        two.style['box-shadow'] = 'none'
     }
 }

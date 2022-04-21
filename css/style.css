@@ -38,6 +38,7 @@ main {
   justify-content: center;
 }
 img {
+  border-radius: .4rem;
   margin-top: .3rem;
   width: 8rem;
 }

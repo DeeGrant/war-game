@@ -7,10 +7,4 @@ Play a game of war
 - spam button
 
 #### TODO
-- remove tests
 - shuffle pile into hand
-- note winning card in UI
-  - highlight
-  - shadow
-  - text
-  - border
