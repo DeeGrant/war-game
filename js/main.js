@@ -8,11 +8,32 @@ function init() {
 }
 
 async function startGame() {
-    let deckId = await getDeckId()
-    let game = new Game(deckId, 'hand1', 'hand2')
+    let deck_id = await getDeckId()
+    let player1_scoreboard = document.querySelector(`#hand1 span`)
+    let player2_scoreboard = document.querySelector(`#hand2 span`)
+    let player1_card = document.querySelector('#hand1 img')
+    let player2_card = document.querySelector('#hand2 img')
+    let button = document.querySelector('button')
+    let war = document.getElementById('war')
+    let winner = document.getElementById('winner')
+    let rounds_board = document.querySelector('h4 span')
+
+    let game = new Game(
+        deck_id,
+        'Alice',
+        'Bob',
+        player1_scoreboard,
+        player2_scoreboard,
+        player1_card,
+        player2_card,
+        button,
+        war,
+        winner,
+        rounds_board)
     let res = await game.dealTheDeck()
-    document.querySelector('#draw').addEventListener('click', () => {game.drawCards()})
-    return deckId
+
+    button.addEventListener('click', () => {game.playersDrawCards()})
+    return deck_id
 }
 
 async function getDeckId() {
@@ -26,164 +47,172 @@ async function getDeckId() {
 }
 
 class Game {
-    constructor(deckId, hand1, hand2) {
-        this.deckId = deckId;
-        this.hand1 = hand1;
-        this.hand2 = hand2;
+    constructor(deck_id, player_1_name, player_2_name, scoreboard_1, scoreboard_2, card_1, card_2, button, war, winner, rounds_board) {
+        this.deck_id = deck_id;
+        this._player_1_name = player_1_name;
+        this._player_2_name = player_2_name;
+        this._scoreboard_1 = scoreboard_1
+        this._scoreboard_2 = scoreboard_2
+        this._card_1 = card_1
+        this._card_2 = card_2
+        this._button = button
+        this._war = war
+        this._winner = winner
+        this._rounds_board = rounds_board
         this.pile = [];
-        this.isWar = false;
+        this.is_war = false;
         this.round = 0;
-        this._score1 = 0;
-        this._score2 = 0;
-        this._isWinner = false;
+        this._score_1 = 0;
+        this._score_2 = 0;
+        this._is_game_finished = false;
     }
 
-    get score1() {
-        return this._score1
+    get score_1() {
+        return this._score_1
     }
-    set score1(score) {
-        this._score1 = score
-        document.querySelector(`#hand1 span`).innerHTML = this._score1
-        if (score === 52) {
-            this._isWinner = true;
+    set score_1(score) {
+        this._score_1 = score
+        this._scoreboard_1.innerHTML = this._score_1
+        if (score === 52 || score < 1) {
+            this._is_game_finished = true;
         }
     }
 
-    get score2() {
-        return this._score2
+    get score_2() {
+        return this._score_2
     }
-    set score2(score) {
-        this._score2 = score
-        document.querySelector(`#hand2 span`).innerHTML = this._score2
-        if (score === 52) {
-            this._isWinner = true;
+    set score_2(score) {
+        this._score_2 = score
+        this._scoreboard_2.innerHTML = this._score_2
+        if (score === 52 || score < 1) {
+            this._is_game_finished = true;
         }
     }
 
     async dealTheDeck() {
         try {
-            let response = await fetch(`https://deckofcardsapi.com/api/deck/${this.deckId}/draw/?count=52`)
+            let response = await fetch(`https://deckofcardsapi.com/api/deck/${this.deck_id}/draw/?count=52`)
             let data = await response.json()
 
             let cards = data.cards.map(card => card.code)
 
-            let hand1 = cards.filter((element, index) => index % 2 === 0)
-            let hand2 = cards.filter((element, index) => index % 2 === 1)
+            // for running test cases
+            // let player_2_cards = [cards.pop(), cards.pop()]
+            // let player_1_cards = cards
+            let player_1_cards = cards.filter((element, index) => index % 2 === 0)
+            let player_2_cards = cards.filter((element, index) => index % 2 === 1)
 
-            let data1 = await this.AddToHand(this.hand1, hand1)
-            let data2 = await this.AddToHand(this.hand2, hand2)
+            let data1 = await this._addCardsToPlayerHand(this._player_1_name, player_1_cards)
+            let data2 = await this._addCardsToPlayerHand(this._player_2_name, player_2_cards)
 
-            this.updateUI(data2, "img/back-final.png", "img/back-final.png")
+            this._updateUI(data2, "img/back-final.png", "img/back-final.png")
         } catch (e) {
             console.log(e)
         }
     }
 
-    addCardsToPile(cards) {
+    _addCardsToPile(cards) {
         // TODO shuffle? here?
         this.pile.push(...cards)
     }
 
-    async addPileToHand(hand) {
+    async _addPileToPlayerHand(player_name) {
         try {
-            let res = await fetch(`https://deckofcardsapi.com/api/deck/${this.deckId}/pile/${hand}/add/?cards=${this.pile.join(',')}`)
+            let res = await fetch(`https://deckofcardsapi.com/api/deck/${this.deck_id}/pile/${player_name}/add/?cards=${this.pile.join(',')}`)
             let data = await res.json()
 
             if (!data.success) {
                 // ??
             }
             this.pile = []
-            // await this.viewHands()
+            // for debugging
+            // await this._viewPlayersHands()
             return data
         } catch (e) {
             console.log(e)
         }
     }
 
-    async drawCards(){ // is war parameter?
-        // serial requests
+    async playersDrawCards(){
         try {
             this.round++
 
-            let drawNumber = 1
-            if (this.isWar) {
-                drawNumber = 4
+            let cards_to_draw = 1
+            if (this.is_war) {
+                cards_to_draw = 4
             }
 
-            let data1 = await this.drawCard(this.hand1, drawNumber)
-            let data2 = await this.drawCard(this.hand2, drawNumber)
+            let data1 = await this._drawCards(this._player_1_name, cards_to_draw)
+            let data2 = await this._drawCards(this._player_2_name, cards_to_draw)
 
-            let compareCard1 = data1.cards[data1.cards.length-1]
-            let compareCard2 = data2.cards[data2.cards.length-1]
+            let player_1_card = data1.cards[data1.cards.length-1]
+            let player_2_card = data2.cards[data2.cards.length-1]
 
-            this.addCardsToPile([...data1.cards.map(card => card.code), ...data2.cards.map(card => card.code)])
+            this._addCardsToPile([...data1.cards.map(card => card.code), ...data2.cards.map(card => card.code)])
 
-            let winner = this.compareCards(compareCard1.value, compareCard2.value)
+            let winning_player = this._getWinningPlayerName(player_1_card, player_2_card)
 
-            if (this.isWar) {
-                this.clearHighlight()
-                this.updateUI(data2, compareCard1.image, compareCard2.image)
+            if (this.is_war) {
+                this._removeCardHighlighting()
+                this._updateUI(data2, player_1_card.image, player_2_card.image)
                 return
             }
 
-            let res = await this.addPileToHand(winner)
-            this.highlightWinner(winner)
-            this.updateUI(res, compareCard1.image, compareCard2.image)
+            let res = await this._addPileToPlayerHand(winning_player)
 
-            if (this._isWinner) {
-                this.isWinner()
+            this._removeCardHighlighting()
+            this._highlightPlayerCard(winning_player)
+            this._updateUI(res, player_1_card.image, player_2_card.image)
+
+            if (this._is_game_finished) {
+                this._displayWinner()
             }
         } catch (e) {
             console.log(e)
         }
     }
 
-    async drawCard(hand, count= 1) {
+    async _drawCards(hand, count= 1) {
         // alt compare to current score
         try {
-            let response = await fetch(`https://deckofcardsapi.com/api/deck/${this.deckId}/pile/${hand}/draw/bottom/?count=${count}`)
+            let response = await fetch(`https://deckofcardsapi.com/api/deck/${this.deck_id}/pile/${hand}/draw/bottom/?count=${count}`)
             if (response.ok) {
                 return await response.json()
             } else if (response.status === 404) {
-                return await this.drawCard(hand, --count)
+                return await this._drawCards(hand, --count)
             }
         } catch (e) {
             console.log(e)
         }
     }
 
-    async AddToHand(hand, cards) {
-        let response = await fetch(`https://deckofcardsapi.com/api/deck/${this.deckId}/pile/${hand}/add/?cards=${cards.join(',')}`)
+    async _addCardsToPlayerHand(player_name, cards) {
+        let response = await fetch(`https://deckofcardsapi.com/api/deck/${this.deck_id}/pile/${player_name}/add/?cards=${cards.join(',')}`)
         let data = await response.json()
-        this.updateScore(hand, data.piles[hand].remaining)
+        this._updatePlayerScore(player_name, data.piles[player_name].remaining)
         return data
     }
 
-    updateScore(hand, score) {
-        const span = document.querySelector(`#${hand} span`)
-        span.innerText = score
-        this[`${hand}_score`] = score
+    _updatePlayerScore(player_name, score) {
+        let score_span = player_name === this._player_1_name ? this._scoreboard_1 : this._scoreboard_2
+        score_span.innerText = score
     }
 
-    updateCard(hand, card_url){
-        document.querySelector(`#${hand} img`).src = card_url
-    }
+    _getWinningPlayerName(player_1_card, player_2_card) {
+        let num_1 = this._cardValueToNumber(player_1_card.value)
+        let num_2 = this._cardValueToNumber(player_2_card.value)
 
-    compareCards(value1, value2) {
-        value1 = this.convertCardValue(value1)
-        value2 = this.convertCardValue(value2)
-
-        if (value1 === value2) {
-            this.isWar = true
+        if (num_1 === num_2) {
+            this.is_war = true
             return 'war'
         }
 
-        this.isWar = false
-        return value1 > value2 ? this.hand1 : this.hand2;
+        this.is_war = false
+        return num_1 > num_2 ? this._player_1_name : this._player_2_name;
     }
 
-    convertCardValue(value) {
-        switch (value) {
+    _cardValueToNumber(card_value) {
+        switch (card_value) {
             case 'JACK':
                 return 11
             case 'QUEEN':
@@ -193,58 +222,50 @@ class Game {
             case 'ACE':
                 return 14
             default:
-                return Number(value)
+                return Number(card_value)
         }
     }
 
-    async viewHands() {
-        let hand1 = await this.getHand(this.hand1)
-        console.log('hand 1 ', hand1.cards.map(card => card.value))
-        let hand2 = await this.getHand(this.hand2)
-        console.log('hand 2 ', hand2.cards.map(card => card.value))
+    async _viewPlayersHands() {
+        let player_1_cards = await this._getPlayerHand(this._player_1_name)
+        console.log(this._player_1_name, player_1_cards.map(card => card.value))
+        let player_2_cards = await this._getPlayerHand(this._player_2_name)
+        console.log(this._player_2_name, player_2_cards.map(card => card.value))
     }
 
-    async getHand(hand) {
-        let response = await fetch(`https://deckofcardsapi.com/api/deck/${this.deckId}/pile/${hand}/list/`)
-        let data = await response.json()
-        return data.piles[hand]
+    async _getPlayerHand(player) {
+        let response = await fetch(`https://deckofcardsapi.com/api/deck/${this.deck_id}/pile/${player}/list/`)
+        let hand_data = await response.json()
+        return hand_data.piles[player].cards
     }
 
-    updateUI(res, card1_url, card2_url) {
-        document.getElementById('war').hidden = !this.isWar
-        this.updateRound()
+    _updateUI(api_data, card_1_url, card_2_url) {
+        this._war.hidden = !this.is_war
+        this._rounds_board.innerHTML = this.round
 
-        this.updateCard(this.hand1, card1_url)
-        this.updateCard(this.hand2, card2_url)
+        this._card_1.src = card_1_url
+        this._card_2.src = card_2_url
 
-        this.score1 = res.piles[this.hand1].remaining
-        this.score2 = res.piles[this.hand2].remaining
+        this.score_1 = api_data.piles[this._player_1_name].remaining
+        this.score_2 = api_data.piles[this._player_2_name].remaining
     }
 
-    updateRound() {
-        document.querySelector('h4 span').innerHTML = this.round
+    _displayWinner() {
+        this._button.disabled = true
+        this._winner.hidden = false
+        this._winner.innerHTML = `${this._score_1 > this._score_2 ? this._player_1_name : this._player_2_name} Wins!`
     }
 
-    isWinner() {
-        document.querySelector('button').disabled = true
-        let heading = document.getElementById('winner')
-        heading.hidden = false
-        heading.innerHTML = `${this._score1 === 52 ? 'Player 1' : 'Player 2'} Wins!`
-    }
-
-    highlightWinner(winner) {
-        this.clearHighlight()
-
-        let img = document.querySelector(`#${winner} img`)
+    _highlightPlayerCard(player_name) {
+        let img = player_name === this._player_1_name ? this._card_1 : this._card_2
         img.style['background'] = 'darkred'
         img.style['box-shadow'] = '.1rem .1rem 0 darkred'
     }
-    clearHighlight() {
-        let one = document.querySelector('#hand1 img')
-        one.style['background'] = 'none'
-        one.style['box-shadow'] = 'none'
-        let two = document.querySelector('#hand2 img')
-        two.style['background'] = 'none'
-        two.style['box-shadow'] = 'none'
+
+    _removeCardHighlighting() {
+        this._card_1.style['background'] = 'none'
+        this._card_1.style['box-shadow'] = 'none'
+        this._card_2.style['background'] = 'none'
+        this._card_2.style['box-shadow'] = 'none'
     }
 }
